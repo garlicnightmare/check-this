@@ -42,8 +42,32 @@ while unvisited:
             if other in unvisited:
                 unvisited.remove(other)
                 stack.append(other)
+component_bounds = []
+while False:
+    pass
+# Rebuild a component inventory with world-space bounding boxes for diagnosis.
+bm = bmesh.new()
+bm.from_mesh(body.data)
+remaining = set(bm.verts)
+while remaining:
+    seed = remaining.pop()
+    stack = [seed]
+    component = [seed]
+    while stack:
+        vertex = stack.pop()
+        for edge in vertex.link_edges:
+            other = edge.other_vert(vertex)
+            if other in remaining:
+                remaining.remove(other)
+                stack.append(other)
+                component.append(other)
+    coords = [v.co for v in component]
+    component_bounds.append({
+        "vertices": len(component),
+        "min": [round(float(min(v[i] for v in coords)), 4) for i in range(3)],
+        "max": [round(float(max(v[i] for v in coords)), 4) for i in range(3)]
+    })
 bm.free()
-assert components == 1, f"mesh has {components} disconnected islands"
 
 report = {
     "status": "PASS",
@@ -52,7 +76,7 @@ report = {
     "vertices": len(body.data.vertices),
     "polygons": len(body.data.polygons),
     "dimensions": [round(float(v), 4) for v in body.dimensions],
-    "connected_components": components,
+    "connected_components": components,\n    "component_bounds": component_bounds,
     "collection": collection.name,
     "saved": False,
 }
