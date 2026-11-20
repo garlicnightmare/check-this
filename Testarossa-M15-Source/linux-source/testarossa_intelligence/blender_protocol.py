@@ -24,6 +24,7 @@ SCHEMAS = {
     "add_camera": {"name", "collection", "location", "rotation", "lens"},
     "add_light": {"name", "collection", "kind", "location", "color", "energy", "size"},
     "set_render": {"engine", "resolution_x", "resolution_y", "fps"},
+    "build_humanoid_blockout": {"name", "collection", "height", "shoulder_width", "hip_width", "voxel_size"},
     "save_project": set(),
 }
 
@@ -129,6 +130,16 @@ def validate_args(operation, args):
             "fps": integer(args["fps"], "fps", 1, 240),
         }
 
+    if operation == "build_humanoid_blockout":
+        return {
+            "name": name(args["name"], "object"),
+            "collection": name(args["collection"], "collection"),
+            "height": number(args["height"], "height", 1.4, 2.1),
+            "shoulder_width": number(args["shoulder_width"], "shoulder_width", 0.32, 0.62),
+            "hip_width": number(args["hip_width"], "hip_width", 0.28, 0.52),
+            "voxel_size": number(args["voxel_size"], "voxel_size", 0.025, 0.08),
+        }
+
     if operation == "save_project":
         return {}
 
@@ -195,6 +206,13 @@ def validate_plan(plan):
                 fail("duplicate object")
             if args["collection"] not in collections:
                 fail("unknown collection dependency")
+            objects.add(args["name"])
+
+        elif operation == "build_humanoid_blockout":
+            if args["collection"] not in collections:
+                fail("unknown collection dependency")
+            if args["name"] in objects:
+                fail("duplicate object")
             objects.add(args["name"])
 
         elif operation == "create_material":

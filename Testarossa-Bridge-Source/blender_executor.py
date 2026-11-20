@@ -78,6 +78,13 @@ def execute(plan, project_path):
             _link_object(obj, collections[a["collection"]])
             obj.scale = a["scale"]
             objects[a["name"]] = obj
+        elif op == "build_humanoid_blockout":
+            from testarossa_humanoid import build_humanoid_blockout
+            obj = build_humanoid_blockout(
+                bpy, a["name"], a["collection"], a["height"],
+                a["shoulder_width"], a["hip_width"], a["voxel_size"]
+            )
+            objects[a["name"]] = obj
         elif op == "create_material":
             mat = bpy.data.materials.new(a["name"])
             mat.use_nodes = True
