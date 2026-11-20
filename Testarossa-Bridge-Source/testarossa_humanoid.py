@@ -50,13 +50,20 @@ def build_humanoid_blockout(bpy, name, collection, height=1.72,
     def segment(a, b, radius_x, radius_y=None):
         if radius_y is None:
             radius_y = radius_x
-        # Overlapping ellipsoids form a continuous tapered limb.
+        # Dense overlapping spherical metaball samples form an orientation-
+        # independent continuous limb, including horizontal forearms/fingers.
         ax, ay, az = a
         bx, by, bz = b
-        for t, factor in ((0.0, 0.86), (0.5, 1.0), (1.0, 0.82)):
-            x, y, z = (ax + (bx-ax)*t, ay + (by-ay)*t, az + (bz-az)*t)
-            blob(x, y, z, radius_x*factor, radius_y*factor,
-                 max(radius_x, radius_y)*factor*1.08)
+        dx, dy, dz = bx-ax, by-ay, bz-az
+        length = (dx*dx + dy*dy + dz*dz) ** 0.5
+        spacing = max(min(radius_x, radius_y) * 0.62, voxel * 0.70)
+        count = max(2, min(96, int(length / spacing) + 2))
+        for index in range(count):
+            t = index / (count - 1)
+            taper = 0.88 + 0.12 * (1.0 - abs(2.0*t - 1.0))
+            x, y, z = ax + dx*t, ay + dy*t, az + dz*t
+            blob(x, y, z, radius_x*taper, radius_y*taper,
+                 max(radius_x, radius_y)*taper)
 
     # Coordinates use Z-up, front toward negative Y. All dimensions scale
     # proportionally from the requested overall character height.
@@ -81,9 +88,9 @@ def build_humanoid_blockout(bpy, name, collection, height=1.72,
     # Shoulder girdle and both arms in a relaxed T-pose.
     for side in (-1, 1):
         shoulder_x = side * sw*.46
-        elbow_x = side * sw*.78
-        wrist_x = side * 1.02
-        palm_x = side * 1.075
+        elbow_x = side * sw*.82
+        wrist_x = side * sw*1.08
+        palm_x = side * sw*1.18
         blob(shoulder_x, 0, shoulder_z, .082*s, .080*s, .083*s)
         segment((shoulder_x, 0, shoulder_z-.015*s),
                 (elbow_x, 0, .735*s), .050*s, .052*s)
@@ -94,13 +101,12 @@ def build_humanoid_blockout(bpy, name, collection, height=1.72,
         # Four fingers extend outward; their spacing is visible in front view.
         for i in range(4):
             zoff = (1.5-i) * .019*s
-            start = (side*1.105*s, -.004*s, .712*s+zoff)
-            mid = (side*1.145*s, -.006*s, .712*s+zoff)
-            end = (side*1.178*s, -.008*s, .712*s+zoff)
+            start = (side*sw*1.21, -.004*s, .712*s+zoff)
+            end = (side*sw*1.36, -.008*s, .712*s+zoff)
             segment(start, end, .010*s, .010*s)
         # Thumb angles away from the palm instead of becoming a fifth parallel digit.
-        segment((side*1.075*s, -.004*s, .680*s),
-                (side*1.125*s, -.008*s, .665*s), .014*s, .013*s)
+        segment((side*sw*1.18, -.004*s, .680*s),
+                (side*sw*1.30, -.008*s, .665*s), .014*s, .013*s)
 
     # Legs, knees, calves, ankles and feet. The hip forms overlap the pelvis.
     for side in (-1, 1):
