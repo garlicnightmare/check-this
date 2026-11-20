@@ -98,6 +98,11 @@ def build_humanoid_blockout(bpy, name, collection, height=1.72,
         segment((elbow_x, 0, .735*s),
                 (wrist_x, 0, .715*s), .036*s, .038*s)
         blob(palm_x, -.002*s, .712*s, .052*s, .027*s, .040*s)
+        # Reinforce the forearm-to-palm transition. At the production voxel
+        # resolution the original wrist endpoint can leave a hairline gap;
+        # this overlapping bridge keeps the hand rooted in the arm.
+        segment((side*sw*.90, -.001*s, .712*s),
+                (side*sw*1.20, -.002*s, .712*s), .035*s, .035*s)
         # Four fingers extend outward; their spacing is visible in front view.
         for i in range(4):
             zoff = (1.5-i) * .019*s
