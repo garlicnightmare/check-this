@@ -53,9 +53,10 @@ while remaining:
     })
 bm.free()
 components = len(component_bounds)
+assert components == 1, f"mesh has {components} disconnected islands"
 
 report = {
-    "status": "DIAGNOSTIC",
+    "status": "PASS",
     "blender": bpy.app.version_string,
     "object": body.name,
     "vertices": len(body.data.vertices),
