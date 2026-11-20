@@ -10,6 +10,10 @@ import bpy
 import bmesh
 from testarossa_humanoid import build_humanoid_blockout
 
+# Match the production executor: run in an isolated factory scene.
+for existing in list(bpy.data.objects):
+    bpy.data.objects.remove(existing, do_unlink=True)
+
 collection = bpy.data.collections.new("Testarossa_Runtime_QA")
 bpy.context.scene.collection.children.link(collection)
 body = build_humanoid_blockout(
