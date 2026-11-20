@@ -28,27 +28,11 @@ assert 1.55 <= body.dimensions.z <= 1.90, "body height outside expected range"
 assert 0.75 <= body.dimensions.x <= 1.50, "arm span outside expected range"
 assert body.dimensions.y > 0.12, "body depth unexpectedly small"
 
-bm = bmesh.new()
-bm.from_mesh(body.data)
-unvisited = set(bm.verts)
-components = 0
-while unvisited:
-    components += 1
-    stack = [unvisited.pop()]
-    while stack:
-        vertex = stack.pop()
-        for edge in vertex.link_edges:
-            other = edge.other_vert(vertex)
-            if other in unvisited:
-                unvisited.remove(other)
-                stack.append(other)
-component_bounds = []
-while False:
-    pass
-# Rebuild a component inventory with world-space bounding boxes for diagnosis.
+# Inventory connected mesh islands and their local-space bounds.
 bm = bmesh.new()
 bm.from_mesh(body.data)
 remaining = set(bm.verts)
+component_bounds = []
 while remaining:
     seed = remaining.pop()
     stack = [seed]
@@ -64,19 +48,21 @@ while remaining:
     coords = [v.co for v in component]
     component_bounds.append({
         "vertices": len(component),
-        "min": [round(float(min(v[i] for v in coords)), 4) for i in range(3)],
-        "max": [round(float(max(v[i] for v in coords)), 4) for i in range(3)]
+        "min": [round(float(min(v.co[i] for v in component)), 4) for i in range(3)],
+        "max": [round(float(max(v.co[i] for v in component)), 4) for i in range(3)]
     })
 bm.free()
+components = len(component_bounds)
 
 report = {
-    "status": "PASS",
+    "status": "DIAGNOSTIC",
     "blender": bpy.app.version_string,
     "object": body.name,
     "vertices": len(body.data.vertices),
     "polygons": len(body.data.polygons),
     "dimensions": [round(float(v), 4) for v in body.dimensions],
-    "connected_components": components,\n    "component_bounds": component_bounds,
+    "connected_components": components,
+    "component_bounds": component_bounds,
     "collection": collection.name,
     "saved": False,
 }
